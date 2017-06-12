@@ -13,33 +13,44 @@ if [ "$1" = "-h" ]; then
     display_usage $0
 fi
 
-# Get the pin number from pins.sh
-pin=`get_pin $1`
-if [ -z "$pin" ]; then
-    display_usage $0
-fi
-mode=$2
+function pinmode {
+    # Get the pin number from pins.sh
+    pin=`get_pin $1`
+    if [ -z "$pin" ]; then
+        display_usage $3
+    fi
+    mode=$2
 
-# Unexport if mode is not INPUT or OUTPUT
-if [ -z "$" ]; then
-    echo $pin > /sys/class/gpio/unexport
-    echo "Pin $0 unexported"
-    exit
-fi
-# Export the pin.
-echo $pin > /sys/class/gpio/export
+    # Unexport if mode is not INPUT or OUTPUT
+    if [ -z "$mode" ]; then
+        echo $pin > /sys/class/gpio/unexport
+        echo "Pin $1 unexported"
+        return
+    fi
+    if [ "$mode" = "UNEXPORT" ]; then
+        echo $pin > /sys/class/gpio/unexport
+        echo "Pin $0 unexported"
+        return
+    fi
+    
+    # Export the pin.
+    echo $pin > /sys/class/gpio/export
 
-#Set mode
-if [ "$2" = "INPUT" ]; then
-    echo "in" > /sys/class/gpio/gpio$pin/direction
-fi
-if [ "$2" = "OUTPUT" ]; then
-    echo "out" > /sys/class/gpio/gpio$pin/direction
-fi
-if [ "$2" = "UNEXPORT" ]; then
-    echo $pin > /sys/class/gpio/unexport
-    echo "Pin $0 unexported"
-    exit
-fi
+    #Set mode
+    if [ "$2" = "INPUT" ]; then
+        echo "in" > /sys/class/gpio/gpio$pin/direction
+    fi
+    if [ "$2" = "OUTPUT" ]; then
+        echo "out" > /sys/class/gpio/gpio$pin/direction
+    fi
 
-echo "Pin $1 set to $2"
+}
+
+# If script is sourced, don't run.
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    # -h for help
+    if [ "$1" = "-h" ]; then
+        display_usage $0
+    fi
+    pinmode $1 $2 $0
+fi
